@@ -28,3 +28,10 @@ export const dataVerify = res => {
 
   return true;
 }
+
+// 返回delay promise方法
+export const delayPromise = time => {
+  return new Promise(resolve => {
+    setTimeout(() => resolve(), time)
+  });
+}

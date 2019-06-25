@@ -11,44 +11,29 @@ import styles from './index.less';
 const request = createRequest();
 const { Item } = Form;
 
-const UserManagement = ({ dispatch, history, adminList }) => {
+const UserManagement = ({ dispatch, adminList }) => {
   const [data, setData] = useState([])
   const [isDraw, setIsDraw] = useState(false)
 
-  useEffect(() => {
-    if (dispatch)
-      dispatch({
-        type: 'user/adminList',
-        payload: {
-          method: 'GET',
-        },
-      });
+  useState(() => {
+    dispatch && 
+    dispatch({
+      type: 'user/adminList',
+      payload: {
+        method: 'GET',
+      },
+    });
+  });
 
-    // request('/user/list', {
-    //   method: 'GET',
-    // })
-    // .then(res => {
-    //   if (!dataVerify(res)) {
-    //     setAuthority('');
-    //     Modal.error({
-    //       title: res.name,
-    //       content: res.message,
-    //       onOk: () => {
-    //         history.push('/user/login');
-    //       },
-    //     });
-    //     return;
-    //   }
-
-    //   setData(res.data.map(v => {
-    //     return {
-    //       ...v,
-    //       dbName: v.roles ? v.roles[0].db : '',
-    //       role: v.roles ? v.roles[0].role : '',
-    //     }
-    //   }));
-    // })
-  }, [adminList]);
+  const deleteUser = user => {
+    dispatch && 
+    dispatch({
+      type: 'user/deleteAdmin',
+      payload: {
+        user
+      },
+    })
+  }
 
   const columns = [{
     title: 'User',
@@ -70,7 +55,7 @@ const UserManagement = ({ dispatch, history, adminList }) => {
         <>
           {
             o.role !== 'root' && 
-            <a onClick={deleteUser}>删除</a>
+            <a onClick={() => deleteUser(o.user)}>删除</a>
             ||
             <span>（超级管理员）</span>
           }
@@ -79,17 +64,13 @@ const UserManagement = ({ dispatch, history, adminList }) => {
     }
   }];
 
-  const deleteUser = () => {
-    
-  }
-
   return (
     <>
       {/* <div className={styles.header}>
         <Button type='primary' onClick={() => setIsDraw(true)}>添加管理员</Button>
       </div> */}
       
-      <Table rowKey={'userKey'} columns={columns} dataSource={data} />
+      <Table rowKey={'userKey'} columns={columns} dataSource={adminList} pagination={false} />
 
       {/* <Drawer
         title='添加用户'

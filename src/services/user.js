@@ -7,3 +7,7 @@ export const userLogin = async options => {
 export const userAdminList = async options => {
   return request()('/user/adminList', options);
 }
+
+export const userDeleteAdmin = async options => {
+  return request()('/user/deleteAdmin', options);
+}

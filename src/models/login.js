@@ -1,33 +1,55 @@
-import { parse, stringify } from 'qs';
 import { routerRedux } from 'dva/router';
-export function getPageQuery() {
-  return parse(window.location.href.split('?')[1]);
-}
-const Model = {
-  namespace: 'login',
-  state: {
-    status: undefined,
-  },
-  effects: {
-    *logout(_, { put }) {
-      const { redirect } = getPageQuery(); // redirect
+import { message, Modal } from 'antd';
 
-      if (window.location.pathname !== '/user/login' && !redirect) {
-        yield put(
-          routerRedux.replace({
-            pathname: '/user/login',
-            search: stringify({
-              redirect: window.location.href,
-            }),
-          }),
-        );
-      }
+import { setLocalStorage, dataVerify, delayPromise } from '@/utils';
+import { setAuthority } from '@/utils/authority';
+import { reloadAuthorized } from '@/utils/Authorized';
+import { userLogin, userAdminList } from '@/services/user';
+
+const initUserState = () => {
+  return {
+    isLogin: false,
+  }
+}
+
+const UserModel = {
+  namespace: 'login',
+  state: initUserState(),
+
+  effects: {
+    *submit({ payload }, { call, put }) {
+      const res = yield call(() => userLogin(payload));
+
+      if (!res || res.code !== 200) return;
+
+      setLocalStorage('token', res.token);
+      setAuthority(res.userType);
+      reloadAuthorized();
+      message.success('恭喜，登陆成功！');
+
+      yield put({
+        type: 'login',
+      })
+      yield delayPromise(2000);
+      yield put(routerRedux.push('/'));
     },
   },
+
   reducers: {
-    changeLoginStatus(state, { payload }) {
-      return { ...state, status: payload.status, type: payload.type };
+    login(state) {
+      return {
+        ...state,
+        isLogin: true,
+      };
+    },
+
+    logout(state) {
+      return {
+        ...state,
+        isLogin: false,
+      };
     },
   },
 };
-export default Model;
+
+export default UserModel;

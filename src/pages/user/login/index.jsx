@@ -11,34 +11,29 @@ import styles from './index.less';
 const request = createRquest();
 const { Item } = Form;
 
-const UserLogin = ({ form, dispatch, history }) => {
+const UserLogin = ({ form, dispatch, isLogin }) => {
   const { getFieldDecorator } = form;
 
   const userLogin = e => {
     e.preventDefault();
 
     form.validateFields((err, values) => {
-      if (!err && dispatch) {
-        dispatch({
-          type: 'user/login',
-          payload: {
-            method: 'POST',
-            requestType: 'form',
-            data: values,
-          },
-        })
+      if (isLogin) {
+        message.warning('不要重复登录！');
+        return;
       }
+
+      !err && dispatch &&
+      dispatch({
+        type: 'login/submit',
+        payload: {
+          method: 'POST',
+          requestType: 'form',
+          data: values,
+        },
+      });
     });
   };
-
-  // useEffect(() => {
-  //   const token = getLocalStorage('token');
-  //   const author = getAuthority();
-
-  //   if (token || author.some(v => v)) {
-  //     history.push('/');
-  //   }
-  // }, [history])
 
   return (
     <Form className={styles.login} onSubmit={userLogin}>
@@ -89,4 +84,6 @@ const UserLogin = ({ form, dispatch, history }) => {
 
 const UserLoginForm = Form.create()(UserLogin);
 
-export default connect()(UserLoginForm);
+export default connect(({ login: { isLogin } }) => ({
+  isLogin,
+}))(UserLoginForm);

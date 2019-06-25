@@ -1,16 +1,10 @@
-import { routerRedux } from 'dva/router';
-import { message, Modal } from 'antd';
-
-import { setLocalStorage, dataVerify, delayPromise } from '@/utils';
-import { setAuthority } from '@/utils/authority';
-import { reloadAuthorized } from '@/utils/Authorized';
-import { userLogin, userAdminList, userDeleteAdmin } from '@/services/user';
+import { userAdminList, userDeleteAdmin } from '@/services/user';
 
 const initUserState = () => {
   return {
     adminList: [],
-  }
-}
+  };
+};
 
 const UserModel = {
   namespace: 'user',
@@ -27,18 +21,19 @@ const UserModel = {
     },
 
     *deleteAdmin({ payload }, { call, put }) {
-      const res = yield call(() => userDeleteAdmin(payload));
+      yield call(() => userDeleteAdmin(payload));
+      const res = yield call(() => userAdminList({ method: 'GET' }));
 
       yield put({
         type: 'saveAdminList',
-        payload: {data: [], code: 200},
+        payload: res,
       });
     },
   },
 
   reducers: {
     saveAdminList(state, { payload }) {
-      const { code, data } = payload;
+      const { data } = payload;
 
       return {
         ...state,

@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { connect } from 'dva';
-import { Table, Modal, Button, Drawer, Form, Input, Icon } from 'antd';
+import { Table, Modal, Button, Form, Input, Icon } from 'antd';
 
 import createRequest from '@/utils/request';
-import { setLocalStorage, dataVerify } from '@/utils';
+import { dataVerify } from '@/utils';
 import { setAuthority } from '@/utils/authority';
 
 import styles from './index.less';
@@ -12,64 +12,79 @@ const request = createRequest();
 const { Item } = Form;
 
 const UserManagement = ({ dispatch, adminList }) => {
-  const [data, setData] = useState([])
-  const [isDraw, setIsDraw] = useState(false)
+  adminList = adminList.map(v => {
+    return {
+      ...v,
+      ...v.roles[0],
+    };
+  });
 
   useState(() => {
-    dispatch && 
-    dispatch({
-      type: 'user/adminList',
-      payload: {
-        method: 'GET',
-      },
-    });
+    dispatch &&
+      dispatch({
+        type: 'user/adminList',
+        payload: {
+          method: 'GET',
+        },
+      });
   });
 
   const deleteUser = user => {
-    dispatch && 
-    dispatch({
-      type: 'user/deleteAdmin',
-      payload: {
-        user
-      },
-    })
-  }
+    dispatch &&
+      dispatch({
+        type: 'user/deleteAdmin',
+        payload: {
+          method: 'POST',
+          params: { user },
+        },
+      });
+  };
 
-  const columns = [{
-    title: 'User',
-    dataIndex: 'user',
-    key: 'user',
-  }, {
-    title: 'DB',
-    dataIndex: 'db',
-    key: 'db',
-  }, {
-    title: 'Level',
-    dataIndex: 'role',
-    key: 'role',
-  }, {
-    title: 'Operation',
-    key: 'operation',
-    render: o => {
-      return (
-        <>
-          {
-            o.role !== 'root' && 
-            <a onClick={() => deleteUser(o.user)}>删除</a>
-            ||
-            <span>（超级管理员）</span>
-          }
-        </>
-      )
-    }
-  }];
+  const columns = [
+    {
+      title: 'User',
+      dataIndex: 'user',
+      key: 'user',
+    },
+    {
+      title: 'DB',
+      dataIndex: 'db',
+      key: 'db',
+    },
+    {
+      title: 'Level',
+      dataIndex: 'role',
+      key: 'role',
+    },
+    {
+      title: 'Operation',
+      key: 'operation',
+      render: o => {
+        if (o.role === 'root') return <span>（超级管理员）</span>;
+
+        return (
+          // <Popconfirm
+          //   title={`是否删除管理员：${o.user}`}
+          //   placement='topright'
+          //   onConfirm={() => deleteUser(o.user)}
+          //   okText='Yes'
+          //   cancelText='No'>
+
+          //   <a>删除</a>
+          // </Popconfirm>
+
+          <a onClick={() => deleteUser(o.user)}>删除</a>
+        );
+      },
+    },
+  ];
 
   return (
     <>
       {/* <div className={styles.header}>
         <Button type='primary' onClick={() => setIsDraw(true)}>添加管理员</Button>
       </div> */}
-      
+
       <Table rowKey={'userKey'} columns={columns} dataSource={adminList} pagination={false} />
 
       {/* <Drawer
@@ -82,8 +97,8 @@ const UserManagement = ({ dispatch, adminList }) => {
         <AddUserForm history={history} />
       </Drawer> */}
     </>
-  )
-}
+  );
+};
 
 const AddUser = ({ form, history }) => {
   const { getFieldDecorator } = form;
@@ -97,8 +112,7 @@ const AddUser = ({ form, history }) => {
           method: 'POST',
           data: values,
           requestType: 'form',
-        })
-        .then(res => {
+        }).then(res => {
           if (!dataVerify(res)) {
             setAuthority('');
             Modal.error({
@@ -110,7 +124,7 @@ const AddUser = ({ form, history }) => {
             });
             return;
           }
-        })
+        });
       }
     });
   };
@@ -125,7 +139,7 @@ const AddUser = ({ form, history }) => {
             placeholder="请输入管理员账户"
             prefix={<Icon type="user" className={styles.input} />}
             size="large"
-          />
+          />,
         )}
       </Item>
 
@@ -138,12 +152,12 @@ const AddUser = ({ form, history }) => {
             prefix={<Icon type="lock" className={styles.input} />}
             size="large"
             type="password"
-          />
+          />,
         )}
       </Item>
 
       <Item>
-        <Button size="large" type="primary" block onClick={userLogin}>
+        <Button size="large" htmlType="submit" type="primary" block onClick={userLogin}>
           添加管理员
         </Button>
       </Item>
@@ -155,4 +169,4 @@ const AddUserForm = Form.create()(AddUser);
 
 export default connect(({ user }) => ({
   adminList: user.adminList,
-}))(UserManagement)
+}))(UserManagement);
